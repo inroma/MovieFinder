@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar>
+      <ion-back-button></ion-back-button>
+      <ion-title>Favoris</ion-title>
+      <div class=icons>
+          <ion-icon name="cloud-download" (click)='importFavorites()'></ion-icon>
+          <ion-icon name="cloud-upload" (click)="presentAlertRadio()"></ion-icon>
+      </div>
+  </ion-toolbar>
+</ion-header>
+<ion-content padding>
+  <ion-list>
+    <ion-card *ngFor="let fav of favorites">
+      <ion-background>
+        <img src="{{fav.PosterPoster}}" (error)=getImgUrl(fav.Type) (click)="onItemClick(fav.IMDbIndex)">
+      </ion-background>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon (click)="setFavorite(getFavorite(fav.IMDbIndex), fav.IMDbIndex, fav)" [name]="getFavorite(fav.IMDbIndex) ? 'star' : 'star-outline'"></ion-icon>
+          {{fav.Title}}
+        </ion-card-title>
+      </ion-card-header>
+    </ion-card>
+  </ion-list>
+</ion-content>
+<div id=download></div>

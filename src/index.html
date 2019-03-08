@@ -12,13 +12,30 @@
   <meta name="msapplication-tap-highlight" content="no" />
 
   <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
-
+  <link rel="stylesheet" href="assets/animation.css" />
   <!-- add to homescreen for ios -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
 </head>
 
 <body>
+  <ion-menu side="start" menuId="first">
+    <ion-header>
+      <ion-toolbar color="tertiary">
+        <ion-title>Menu</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list>
+        <ion-item href="/tabs/home">Accueil</ion-item>
+        <ion-item href="/tabs/series">Séries</ion-item>
+        <ion-item href="/tabs/favoris">Favoris</ion-item>
+        <ion-item href="/settings">Paramètres</ion-item>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+  <ion-router-outlet main></ion-router-outlet>
   <app-root></app-root>
 </body>
 

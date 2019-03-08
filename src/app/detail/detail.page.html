@@ -1,0 +1,136 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-back-button></ion-back-button>
+        <ion-title>Détails</ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content padding>
+    <div [ngSwitch]="type">
+        <div *ngSwitchCase="'movie'">
+            <ion-card>
+                <ion-background>
+                    <img src={{movie.PosterPoster}} (error)=getImgUrl(movie.Type)>
+                </ion-background>
+                <ion-card-header>
+                    <ion-card-title>
+                        <ion-icon (click)="setFavorite(isFavorite)" [name]="isFavorite ? 'star' : 'star-outline'"></ion-icon>
+                        {{movie.Title}}</ion-card-title>
+                    <ion-card-subtitle>{{movie.Year}}</ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>Durée: {{movie.Runtime}}</ion-card-content>
+                <ion-card-content>Description: {{movie.description}}</ion-card-content>
+                <ion-card-content>Acteurs: {{movie.actors}}</ion-card-content>
+                <ion-card-content>Rated: {{movie.ageRating}}</ion-card-content>
+                <ion-card-content>Sortie: {{movie.releaseDate}}</ion-card-content>
+                <ion-card-content>Producteur: {{movie.director}}</ion-card-content>
+                <ion-card-content>Genre: {{movie.genre}}</ion-card-content>
+                <ion-card-content>Notes: {{movie.IMDbRating}} / 10</ion-card-content>
+                <ion-card-content>Votes: {{movie.IMDbVotes}}</ion-card-content>
+                <ion-card-content>Site: {{movie.website}}</ion-card-content>
+                <ion-card-content>Nominations: {{movie.nominations}}</ion-card-content>
+            </ion-card></div>
+        <div *ngSwitchCase="'series'">
+            <ion-card>
+                <ion-background>
+                    <img src={{serie.PosterPoster}} (error)=getImgUrl(serie.Type)>
+                </ion-background>
+                <ion-card-header>
+                    <ion-card-title>
+                        <ion-icon (click)="setFavorite(isFavorite)" [name]="this.isFavorite ? 'star' : 'star-outline'"></ion-icon>
+                        {{serie.Title}}</ion-card-title>
+                    <ion-card-subtitle>{{serie.Year}}</ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>Durée: {{serie.Runtime}}</ion-card-content>
+                <ion-card-content>Description: {{serie.description}}</ion-card-content>
+                <ion-card-content>Awards: {{serie.awards}}</ion-card-content>
+                <ion-card-content>Rated: {{serie.ageRating}}</ion-card-content>
+                <ion-card-content>Sortie: {{serie.releaseDate}}</ion-card-content>
+                <ion-card-content>Producteur: {{serie.director}}</ion-card-content>
+                <ion-card-content>Genre: {{serie.genre}}</ion-card-content>
+                <ion-card-content>Notes: {{serie.IMDbRating}} / 10</ion-card-content>
+                <ion-card-content>Votes: {{serie.IMDbVotes}}</ion-card-content>
+                <ion-card-content>Site: {{serie.website}}</ion-card-content>
+                <ion-card-content>Nominations: {{serie.awards}}</ion-card-content>
+                <ion-card-content>
+                    <ion-list *ngFor="let saison of saisonlist; let i=index" text-wrap [ngClass]="{active: isLevel1Shown('idx'+i)}">
+                            <b (click)="toggleLevel1('idx'+i)">{{saison.Title}} - Saison {{saison.Season}}</b>
+                            <ion-icon color="success" item-right [name]="isLevel1Shown('idx'+i) ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>
+                            <ion-icon name="open" (click)="onSeasonClick(saison.Title, saison.Season)"></ion-icon>
+                            <ion-list *ngIf="isLevel1Shown('idx'+i)">
+                                <div class="animated slideInDown">
+                                    <ion-item *ngFor="let episode of saison.Episodes" (click)="onItemClick(episode.IMDbIndex)">
+                                            <h4>Ep.{{episode.Episode}} - {{episode.Title}}</h4>
+                                        </ion-item>
+                                </div>
+                            </ion-list>
+                        </ion-list>
+                </ion-card-content>
+          </ion-card>
+        </div>
+        <div *ngSwitchCase="'episode'">
+                <ion-card>
+                    <ion-background>
+                        <img src={{episode.PosterPoster}} (error)=getImgUrl(episode.Type)>
+                    </ion-background>
+                    <ion-card-header>
+                        <ion-card-title>
+                            <ion-icon (click)="setFavorite(isFavorite)" [name]="this.isFavorite ? 'star' : 'star-outline'"></ion-icon>
+                            S.{{episode.Season}} | Ep.{{episode.Episode}} - {{episode.Title}}</ion-card-title>
+                        <ion-card-subtitle>{{episode.Year}}</ion-card-subtitle>
+                    </ion-card-header>
+                    <ion-card-content (click)="onItemClick(serie.IMDbIndex)">Serie: <a>{{serie.Title}}</a></ion-card-content>
+                    <ion-card-content>Durée: {{episode.Runtime}}</ion-card-content>
+                    <ion-card-content>Description: {{episode.Plot}}</ion-card-content>
+                    <ion-card-content>Awards: {{episode.Awards}}</ion-card-content>
+                    <ion-card-content>Rated: {{episode.Rated}}</ion-card-content>
+                    <ion-card-content>Sortie: {{episode.Released}}</ion-card-content>
+                    <ion-card-content>Producteur: {{episode.Director}}</ion-card-content>
+                    <ion-card-content>Genre: {{episode.Genre}}</ion-card-content>
+                    <ion-card-content>Notes: {{episode.imdbRating}} / 10    |   Votes: {{episode.imdbVotes}}</ion-card-content>
+                    <ion-card-content>
+                        <ion-list *ngFor="let saison of saisonlist; let i=index" text-wrap [ngClass]="{active: isLevel1Shown('idx'+i)}">
+                                <b (click)="toggleLevel1('idx'+i)">{{saison.Title}} - Saison {{saison.Season}}</b>
+                                <ion-icon color="success" item-right [name]="isLevel1Shown('idx'+i) ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>
+                                <ion-icon name="open" (click)="onSeasonClick(saison.Title, saison.Season)"></ion-icon>
+                                <ion-list *ngIf="isLevel1Shown('idx'+i)">
+                                    <div class="animated slideInDown">
+                                        <ion-item *ngFor="let episode of saison.Episodes" (click)="onItemClick(episode.IMDbIndex)">
+                                            <h4>Ep.{{episode.Episode}} - {{episode.Title}}</h4>
+                                        </ion-item>
+                                    </div>
+                                </ion-list>
+                            </ion-list>
+                    </ion-card-content>
+              </ion-card>
+        </div>
+        <div *ngSwitchCase="'season'">
+            <ion-card>
+                <ion-background>
+                    <img src={{saison.PosterPoster}} (error)=getImgUrl(saison.Type)>
+                </ion-background>
+                <ion-card-header>
+                    <ion-card-title>{{saison.Title}} - S.{{saison.Season}}</ion-card-title>
+                </ion-card-header>
+                <ion-card-content (click)="onItemClick(saison.Episodes[0]['seriesID'])">Serie: <a>{{saison.Title}}</a></ion-card-content>               
+                
+                <ion-card-content>Épisodes:</ion-card-content>
+                <ion-grid class="grid-episodes">
+                    <ion-row>
+                        <ion-col *ngFor="let episode of saison.Episodes" width-200>
+                            <ion-card (click)="onItemClick(episode.IMDbIndex)">
+                                <ion-background>
+                                    <img src={{episode.posterURL}} (error)=getImgUrl(episode.Type)>
+                                </ion-background>
+                                <ion-card-header>
+                                    <ion-card-title>
+                                        <ion-icon (click)="setFavorite(isFavorite)" [name]="this.isFavorite ? 'star' : 'star-outline'"></ion-icon>
+                                        {{episode.Title}}</ion-card-title>
+                                </ion-card-header>
+                            </ion-card>
+                        </ion-col>
+                    </ion-row>
+                </ion-grid>
+            </ion-card>
+        </div>
+    </div>
+</ion-content>

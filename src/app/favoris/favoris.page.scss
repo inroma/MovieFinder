@@ -1,0 +1,19 @@
+.ion-header {
+    display: inline-flex;
+}
+
+.icons {
+    display: inline-flex;
+    font-size: 30px;
+    float: right;
+}
+
+.icons ion-icon {
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.title-md {
+    display: inline-block;
+    vertical-align: -webkit-baseline-middle;
+}

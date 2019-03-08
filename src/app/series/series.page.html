@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Ynov Serie Finder</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-toolbar>
+    <ion-searchbar #mySearchbar (ionInput)="onInput()"></ion-searchbar>
+</ion-toolbar>
+  
+<ion-content padding>
+  <h1>Series</h1>
+  <ion-list>
+    <ion-card *ngFor="let serie of serielist" (click)="cardClick(serie.IMDbIndex)">
+      <ion-card-header>
+        <ion-card-title>{{serie.Title}} {{serie.Runtime}}</ion-card-title>
+        <ion-card-subtitle>{{serie.Year}}</ion-card-subtitle>
+      </ion-card-header>
+      <ion-background>
+        <img src="{{serie.PosterPoster}}" (error)=getImgUrl(serie)>
+      </ion-background>
+      <ion-card-content>
+        {{serie.description}}
+      </ion-card-content>
+    </ion-card>
+  </ion-list>
+</ion-content>

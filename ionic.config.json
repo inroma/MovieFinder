@@ -1,6 +1,8 @@
 {
   "name": "rforMovieFinder",
-  "integrations": {},
+  "integrations": {
+    "cordova": {}
+  },
   "type": "angular",
   "id": "bf9e4f4c"
 }
