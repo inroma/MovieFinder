@@ -87,6 +87,6 @@ export class HomePage {
 	}
 
 	getImgUrl(movie: Movie) {
-		movie.PosterPoster = movie.posterURL?movie.posterURL:'../assets/No_image_available.svg';
+		movie.PosterPoster = movie.posterURL ? movie.posterURL : '../assets/No_image_available.svg';
 	}
 }

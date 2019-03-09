@@ -63,7 +63,7 @@ export class SeriesPage implements OnInit {
 	}
 
 	getImgUrl(serie: Serie) {
-		serie.PosterPoster = serie.posterURL?serie.posterURL:'../assets/No_image_available.svg';
+		serie.PosterPoster = serie.posterURL ? serie.posterURL : '../assets/No_image_available.svg';
 	}
 
 }

@@ -1,4 +1,4 @@
-import { NgModule, ErrorHandler } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 
@@ -12,7 +12,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from '@angular/common/http';
 import { SortPipe } from './sort.pipe';
 import { File } from '@ionic-native/file/ngx';
-import { IonicStorageModule } from '@ionic/storage';
 
 @NgModule({
   declarations: [AppComponent, SortPipe],
@@ -22,7 +21,6 @@ import { IonicStorageModule } from '@ionic/storage';
     IonicModule.forRoot(),
     AppRoutingModule,
     HttpClientModule,
-    IonicStorageModule.forRoot(),
   ],
   providers: [
     StatusBar,

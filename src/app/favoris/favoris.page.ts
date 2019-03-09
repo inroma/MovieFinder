@@ -7,7 +7,6 @@ import { Movie } from 'src/models/movies';
 import { Saison } from 'src/models/seasons';
 import { Serie } from 'src/models/series';
 import { RestApiService } from '../rest-api.service';
-import { Storage } from '@ionic/storage';
 import { FileChooser } from '@ionic-native/file-chooser/ngx';
 
 @Component({
@@ -16,117 +15,90 @@ import { FileChooser } from '@ionic-native/file-chooser/ngx';
   styleUrls: ['./favoris.page.scss'],
 })
 export class FavorisPage implements OnInit {
+  localstorage = window.localStorage;
   favorites = [];
   type: string;
-  movie: Movie;
-  serie: Serie;
-  episode: Episode;
-  saison: Saison;
   poster: string;
 
-  constructor(public api: RestApiService, public router: Router, public alertController: AlertController, private storage: Storage, private fileChooser: FileChooser) { }
+  constructor(public api: RestApiService, public router: Router, public alertController: AlertController, private fileChooser: FileChooser) { }
 
-  ngOnInit() {
-    this.storage.keys().then(keys => {
-      keys.forEach(key => {
-        console.log(key);
-        this.storage.get(key).then((value) => {
-          switch (value["Type"])
-          {
-            case "movie":
-            {
-              console.log('movie')
-              this.movie = value;
-              this.movie.PosterPoster = this.api.getPoster(this.movie.IMDbIndex);
-              //this.favorites.push(this.movie);
-              this.favorites.push(this.movie);
-              break;
-            }
-            case "series":
-            {
-              console.log('series')
-              this.serie = value;
-              this.serie.PosterPoster = this.api.getPoster(this.serie.IMDbIndex);
-              //this.favorites.push(this.serie);
-              return this.serie;
-            }
-            case "episode":
-            {
-              console.log('episode')
-              this.episode = value;
-              if(this.episode.PosterPoster == undefined)
-                this.episode.PosterPoster = this.episode.posterURL;
-              //this.favorites.push(this.episode);
-              return this.episode;
-            }
-            default:
-            {
-              console.log('defauklt')
-              this.saison = value;
-              //this.favorites.push(this.saison);
-              return this.saison;
-            }
-          }
-        });
-      });
-    });
+  ngOnInit() {}
+
+  ionViewWillEnter() {
+    this.favorites = new Array();
+    for(let i = 0; i < this.localstorage.length; i++) {
+      const element = JSON.parse(this.localstorage.getItem(this.localstorage.key(i)));
+      console.log(element);
+      switch (element["Type"]) {
+        case "movie":
+            console.log('movie')
+            const movie = element;
+            movie.PosterPoster = this.api.getPoster(movie.IMDbIndex);
+            this.favorites.push(movie);
+            break;
+        case "series":
+            console.log('series')
+            const serie = element;
+            serie.PosterPoster = this.api.getPoster(serie.IMDbIndex);
+            this.favorites.push(serie);
+            break;
+        case "episode":
+            console.log('episode')
+            const episode = element;
+            episode.PosterPoster = this.api.getPoster(episode.IMDbIndex);
+            this.favorites.push(episode);
+            break;
+        default:
+            console.log('default')
+            const saison = element;
+            this.favorites.push(saison);
+            break;
+        }
+      }
   }
 
-  getImgUrl(id: string) {
-    switch(id){
-      case "movie":
-      {
-        this.movie.PosterPoster = this.movie.PosterPoster?this.movie.posterURL:'../assets/No_image_available.svg';
-        break;
-      }
-      case "series":
-      {
-        this.serie.PosterPoster = this.serie.PosterPoster?this.serie.posterURL:'../assets/No_image_available.svg';
-        break;
-      }
-      case "episode":
-      {
-        this.episode.PosterPoster = this.episode.PosterPoster?this.episode.posterURL:'../assets/No_image_available.svg';
-        break;
-      }
+  getImgUrl(element) {
+    let no_image: string = "../assets/No_image_available.svg"
+    switch (element["Type"]) {
       case "season":
-      {
-        this.saison.PosterPoster = '../assets/No_image_available.svg';
+        element.PosterPoster = no_image;
         break;
-      }
+      default:
+        console.log(element.PosterPoster);
+        console.log(element.posterURL);
+        element.PosterPoster = element.posterURL ? element.posterURL : no_image;
+        break;
     }
   }
 
 
-  getFavorite(id: string): boolean {
-    let favorite = false;
-    this.storage.get(id).then(res => {
-      if(res) {
+  getFavorite(item: JSON): boolean {
+    let favorite = true;
+    if (this.localstorage.getItem(item["IMDbIndex"])) {
         favorite = true;
       }
-      else {
+      else
+      {
         favorite = false;
       }
-    });
     return favorite;
   }
 
-  setFavorite(isFav: boolean, id: string, target: any) {
-    if(!isFav)
-    {
-      this.storage.set(id, target);
+  setFavorite(isFav: boolean, target: JSON) {
+    if (!isFav) {
+      this.localstorage.setItem(target["IMDbIndex"], JSON.stringify(target));
     }
-    else
-    {
-      this.storage.remove(id);
+    else {
+      this.localstorage.removeItem(target["IMDbIndex"]);
     }
-    this.storage.keys().then((res) => { console.log(res)});
+    console.log(JSON.parse(this.localstorage.getItem(target["IMDbIndex"])));
   }
 
-  onItemClick(id: string) {
+  onItemClick(item : JSON) {
+    console.log(item);
+    const id = item["IMDbIndex"];
     this.router.navigate(['/detail', { id }]);
   }
-
 
   async presentAlertRadio() {
     const alert = await this.alertController.create({
@@ -157,12 +129,10 @@ export class FavorisPage implements OnInit {
         }, {
           text: 'Ok',
           handler: (data: string) => {
-            if(data == 'csv')
-            {
+            if (data == 'csv') {
               this.writeCSVFile();
             }
-            else
-            {
+            else {
               this.writeJSONFile();
             }
             console.log('Confirm Ok');
@@ -175,8 +145,11 @@ export class FavorisPage implements OnInit {
   }
 
   writeJSONFile() {
-    let temp = this.storage.forEach(() => {}).then(res => temp = res);
-    const data = 'data:text/json;charser=utf8,' + temp;
+    let data = 'data:text/json;charser=utf8,';
+    for(let i = 0; this.localstorage.length; i++) {
+      const element = this.localstorage.getItem(this.localstorage.key(i));
+      data += element;
+    }
     const jsonFile = new File();
     jsonFile.createFile(jsonFile.externalRootDirectory, 'favorites.json', true);
     jsonFile.writeFile(jsonFile.externalRootDirectory, 'favorites.json', data);
@@ -185,38 +158,38 @@ export class FavorisPage implements OnInit {
     //a.download = 'favorites.json';
     //document.getElementById('download').appendChild(a);
     //a.click();
- }
+  }
 
   writeCSVFile() {
     let csv = "";
-      let array = new Array();
-      for(let i = 0; i < this.storage.length.length; i++) {
-        let res = JSON.parse(this.storage[i]);
-        array.push(res);
-      };
-      csv = ConvertToCSV(array);
-      console.log(csv);
-      const data = 'data:text/csv;charser=utf8,' + csv;
-      const a = document.createElement('a');
-      a.href = data;
-      a.download = 'favorites.csv';
-      document.getElementById('download').appendChild(a);
-      a.click();
+    let array = new Array();
+    for (let i = 0; i < this.localstorage.length; i++) {
+      const element = this.localstorage.getItem(this.localstorage.key(i));
+      array.push(JSON.parse(element));
+    };
+    csv = ConvertToCSV(array);
+    console.log(csv);
+    const data = 'data:text/csv;charser=utf8,' + csv;
+    const a = document.createElement('a');
+    a.href = data;
+    a.download = 'favorites.csv';
+    document.getElementById('download').appendChild(a);
+    a.click();
 
     function ConvertToCSV(objArray) {
       var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
       var str = '';
 
       for (var i = 0; i < array.length; i++) {
-          var line = '';
-          for (var index in array[i]) {
-              if (line != '') {
-                line += array[i][index];
-                line += ';';
-              }
+        var line = '';
+        for (var index in array[i]) {
+          if (line != '') {
+            line += array[i][index];
+            line += ';';
           }
+        }
 
-          str += line + '\r\n';
+        str += line + '\r\n';
       }
 
       return str;
@@ -225,8 +198,8 @@ export class FavorisPage implements OnInit {
 
   importFavorites(file: File) {
     this.fileChooser.open()
-    .then(uri => file.readAsText(uri, 'favorites.json').then(res => {this.storage = JSON.parse(res);}))
-    .catch(e => console.log(e));
+      .then(uri => file.readAsText(uri, 'favorites.json').then(res => { this.localstorage = JSON.parse(res); }))
+      .catch(e => console.log(e));
   }
 
 }

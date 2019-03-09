@@ -12,11 +12,11 @@
   <ion-list>
     <ion-card *ngFor="let fav of favorites">
       <ion-background>
-        <img src="{{fav.PosterPoster}}" (error)=getImgUrl(fav.Type) (click)="onItemClick(fav.IMDbIndex)">
+        <img src="{{fav.PosterPoster}}" (error)=getImgUrl(fav) (click)="onItemClick(fav)">
       </ion-background>
       <ion-card-header>
         <ion-card-title>
-          <ion-icon (click)="setFavorite(getFavorite(fav.IMDbIndex), fav.IMDbIndex, fav)" [name]="getFavorite(fav.IMDbIndex) ? 'star' : 'star-outline'"></ion-icon>
+          <ion-icon (click)="setFavorite(getFavorite(fav), fav)" [name]="getFavorite(fav) ? 'star' : 'star-outline'"></ion-icon>
           {{fav.Title}}
         </ion-card-title>
       </ion-card-header>

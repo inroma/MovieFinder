@@ -14,6 +14,7 @@ import { Episode } from 'src/models/episode';
   styleUrls: ['./detail.page.scss'],
 })
 export class DetailPage implements OnInit {
+  localstorage = window.localStorage;
   id: string;
   title : string;
   type: string;
@@ -26,7 +27,7 @@ export class DetailPage implements OnInit {
   isFavorite: boolean = false;
   target: any;
 
-  constructor(private thisRoute: ActivatedRoute, public api: RestApiService, public router: Router, public storage: Storage){}
+  constructor(private thisRoute: ActivatedRoute, public api: RestApiService, public router: Router){}
 
   ngOnInit()
   {
@@ -129,47 +130,38 @@ export class DetailPage implements OnInit {
     this.router.navigate(['/detail', { saison: serieTitle,seasonNumber}]);
   }
 
-  getImgUrl(id: string) {
-    switch(id){
+  getImgUrl(type: string) {
+    switch(type){
       case "movie":
-      {
         this.movie.PosterPoster = this.movie.posterURL?this.movie.posterURL:'../assets/No_image_available.svg';
         break;
-      }
       case "series":
-      {
         this.serie.PosterPoster = this.serie.posterURL?this.serie.posterURL:'../assets/No_image_available.svg';
         break;
-      }
       case "episode":
-      {
         this.episode.PosterPoster = this.episode.posterURL?this.episode.posterURL:'../assets/No_image_available.svg';
         break;
-      }
     }
   }
 
   getFavorite(): boolean {
     let favorite = false;
-    this.storage.get(this.id).then(data=> {
-        if(data)
-        {
-          favorite = true;
-        }
-    });
+    if(this.localstorage.getItem(this.id))
+    {
+      favorite = true;
+    }
     return favorite;
   }
 
   setFavorite(isFav: boolean) {
     if(!isFav)
     {
-      this.storage.set(this.id, this.target)
-        .then(res => console.log(res))
-        .catch((error) => console.log(error));
+      this.localstorage.setItem(this.id, JSON.stringify(this.target));
+      console.log(this.localstorage.getItem(this.id));
     }
     else
     {
-      this.storage.remove(this.id)
+      this.localstorage.removeItem(this.id);
     }
     this.isFavorite = this.getFavorite();
   }
