@@ -36,6 +36,15 @@ const routes: Routes = [
         ]
       },
       {
+        path: 'detail',
+        children: [
+          {
+            path: '',
+            loadChildren: '../detail/detail.module#DetailPageModule'
+          }
+        ]
+      },
+      {
         path: '',
         redirectTo: '/tabs/home',
         pathMatch: 'full'

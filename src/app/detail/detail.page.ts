@@ -27,11 +27,11 @@ export class DetailPage implements OnInit {
   isFavorite: boolean = false;
   target: any;
 
-  constructor(private thisRoute: ActivatedRoute, public api: RestApiService, public router: Router){}
+  constructor(private activatedRoute: ActivatedRoute, public api: RestApiService, public router: Router){}
 
   ngOnInit()
   {
-    this.thisRoute.paramMap.subscribe(
+    this.activatedRoute.paramMap.subscribe(
       (params) => {
         this.id = params.get('id');
       }
@@ -100,9 +100,17 @@ export class DetailPage implements OnInit {
       });
     }
     else {
-      this.api.getDataFromTitle(this.thisRoute.snapshot.paramMap.get('saison'), this.thisRoute.snapshot.paramMap.get('seasonNumber')).subscribe((res) => {
+      let paramSaison: string;
+      let paramSeasonNumber: string;
+      this.activatedRoute.paramMap.subscribe(
+        (params) => {
+          paramSaison = params.get('saison');
+          paramSeasonNumber = params.get('seasonNumber');
+        }
+      );
+      this.api.getDataFromTitle(paramSaison, paramSeasonNumber).subscribe((res) => {
         this.saison = new Saison(res);
-        this.api.getDataFromName(this.thisRoute.snapshot.paramMap.get('saison'), 'series').subscribe((res) => {
+        this.api.getDataFromName(paramSaison, 'series').subscribe((res) => {
           this.saison.PosterPoster = this.api.getPoster(res["Search"][0]["imdbID"]);
         });
         this.title = this.saison.Title;
@@ -119,7 +127,7 @@ export class DetailPage implements OnInit {
 
       });
     }
-    this.isFavorite = this.getFavorite();
+    this.isFavorite = this.getFavorite(this.id);
   }
 
   onItemClick(id :string) {
@@ -141,29 +149,32 @@ export class DetailPage implements OnInit {
       case "episode":
         this.episode.PosterPoster = this.episode.posterURL?this.episode.posterURL:'../assets/No_image_available.svg';
         break;
+      case "season":
+        this.saison.PosterPoster = '../assets/No_image_available.svg';
+        break;
     }
   }
 
-  getFavorite(): boolean {
+  getFavorite(id: string): boolean {
     let favorite = false;
-    if(this.localstorage.getItem(this.id))
+    if(this.localstorage.getItem(id))
     {
       favorite = true;
     }
     return favorite;
   }
 
-  setFavorite(isFav: boolean) {
+  setFavorite(isFav: boolean, item: JSON) {
     if(!isFav)
     {
-      this.localstorage.setItem(this.id, JSON.stringify(this.target));
-      console.log(this.localstorage.getItem(this.id));
+      this.localstorage.setItem(item["IMDbIndex"], JSON.stringify(item));
+      console.log(this.localstorage.getItem(item["IMDbIndex"]));
     }
     else
     {
-      this.localstorage.removeItem(this.id);
+      this.localstorage.removeItem(item["IMDbIndex"]);
     }
-    this.isFavorite = this.getFavorite();
+    this.isFavorite = this.getFavorite(item["IMDbIndex"]);
   }
 
   toggleLevel1(idx) {

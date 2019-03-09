@@ -3,6 +3,7 @@
       <ion-back-button></ion-back-button>
       <ion-title>Favoris</ion-title>
       <div class=icons>
+          <ion-icon name="trash" (click)='deleteFavorites()' style="font-size: 25px; margin-top:2px;"></ion-icon>
           <ion-icon name="cloud-download" (click)='importFavorites()'></ion-icon>
           <ion-icon name="cloud-upload" (click)="presentAlertRadio()"></ion-icon>
       </div>

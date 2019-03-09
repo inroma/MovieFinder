@@ -1,7 +1,6 @@
 <ion-header>
     <ion-toolbar>
-        <ion-back-button></ion-back-button>
-        <ion-title>Détails</ion-title>
+        <ion-back-button></ion-back-button><ion-title>Détails</ion-title>
     </ion-toolbar>
 </ion-header>
 <ion-content padding>
@@ -13,7 +12,7 @@
                 </ion-background>
                 <ion-card-header>
                     <ion-card-title>
-                        <ion-icon (click)="setFavorite(isFavorite)" [name]="isFavorite ? 'star' : 'star-outline'"></ion-icon>
+                        <ion-icon (click)="setFavorite(isFavorite, movie)" [name]="getFavorite(movie['IMDbIndex']) ? 'star' : 'star-outline'"></ion-icon>
                         {{movie.Title}}</ion-card-title>
                     <ion-card-subtitle>{{movie.Year}}</ion-card-subtitle>
                 </ion-card-header>
@@ -36,7 +35,7 @@
                 </ion-background>
                 <ion-card-header>
                     <ion-card-title>
-                        <ion-icon (click)="setFavorite(isFavorite)" [name]="this.isFavorite ? 'star' : 'star-outline'"></ion-icon>
+                        <ion-icon (click)="setFavorite(isFavorite, serie)" [name]="getFavorite(serie['IMDbIndex']) ? 'star' : 'star-outline'"></ion-icon>
                         {{serie.Title}}</ion-card-title>
                     <ion-card-subtitle>{{serie.Year}}</ion-card-subtitle>
                 </ion-card-header>
@@ -74,7 +73,7 @@
                     </ion-background>
                     <ion-card-header>
                         <ion-card-title>
-                            <ion-icon (click)="setFavorite(isFavorite)" [name]="this.isFavorite ? 'star' : 'star-outline'"></ion-icon>
+                            <ion-icon (click)="setFavorite(isFavorite, episode)" [name]="getFavorite(episode['IMDbIndex']) ? 'star' : 'star-outline'"></ion-icon>
                             S.{{episode.Season}} | Ep.{{episode.Episode}} - {{episode.Title}}</ion-card-title>
                         <ion-card-subtitle>{{episode.Year}}</ion-card-subtitle>
                     </ion-card-header>
@@ -123,7 +122,7 @@
                                 </ion-background>
                                 <ion-card-header>
                                     <ion-card-title>
-                                        <ion-icon (click)="setFavorite(isFavorite)" [name]="this.isFavorite ? 'star' : 'star-outline'"></ion-icon>
+                                        <ion-icon (click)="setFavorite(getFavorite(episode['IMDbIndex']), episode)" [name]="getFavorite(episode['IMDbIndex']) ? 'star' : 'star-outline'"></ion-icon>
                                         {{episode.Title}}</ion-card-title>
                                 </ion-card-header>
                             </ion-card>

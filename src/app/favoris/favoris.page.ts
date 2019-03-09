@@ -202,4 +202,24 @@ export class FavorisPage implements OnInit {
       .catch(e => console.log(e));
   }
 
+  async deleteFavorites() {
+    const alert = await this.alertController.create({
+      header: "Suppression des favoris",
+      message: "Voulez-vous vraiment supprimer les favoris ?",
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+        }, {
+          text: 'Ok',
+          handler: () => {
+            localStorage.clear();
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
 }

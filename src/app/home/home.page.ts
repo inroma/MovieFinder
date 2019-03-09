@@ -19,9 +19,15 @@ export class HomePage {
 	movielist: Movie[] = new Array();
 	constructor(public api: RestApiService, public loadingController: LoadingController, public router: Router) {}
 
+	ngOnInit() {}
 
-	ngOnInit() {
-		for (let i = 0; i < 15; i++)
+	async ionViewWillEnter() {
+		const loading = await this.loadingController.create({
+			message: 'Loading',
+			duration: 15
+		});
+		loading.present();
+		for (let i = 0; i < 30; i++)
 		{
 			this.api.getData()
 			.subscribe(res => {
@@ -30,6 +36,7 @@ export class HomePage {
 					if(this.movielist.length < 5) {
 						console.log(res);
 						this.movielist.push(new Movie(res));
+						loading.dismiss();
 					}
 				}
 			});
@@ -69,8 +76,10 @@ export class HomePage {
 
 	async getData() {
 	  const loading = await this.loadingController.create({
-	    message: 'Loading'
-	  });
+			message: 'Loading',
+			duration: 15
+		});
+		loading.present();
 	  await loading.present();
 	  this.api.getData()
 	    .subscribe(res => {

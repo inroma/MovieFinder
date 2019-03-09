@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { IonSearchbar } from '@ionic/angular';
+import { IonSearchbar, LoadingController } from '@ionic/angular';
 import { RestApiService } from '../rest-api.service';
 import { Movie } from "../../models/movies";
 import { Serie } from "../../models/series";
@@ -13,22 +13,30 @@ import { Router } from '@angular/router';
 export class SeriesPage implements OnInit {
 	@ViewChild('mySearchbar') searchbar: IonSearchbar;
 	serielist: Serie[] = new Array();
-  constructor(public api: RestApiService, public router: Router) { }
+  constructor(public api: RestApiService, public router: Router, public loadingController: LoadingController) { }
 
-  ngOnInit() {
-    for (let i = 0; i < 30; i++)
-	{
-		this.api.getData()
-		.subscribe(res => {
-			if(res["Type"] == "series")
-			{
-				if(this.serielist.length < 5) {
-					console.log(res);
-					this.serielist.push(new Serie(res));
-				}
-			}
+	ngOnInit() {}
+
+  async ionViewWillEnter() {
+		const loading = await this.loadingController.create({
+			message: 'Loading',
+			duration: 15
 		});
-	}
+		loading.present();
+    for (let i = 0; i < 80; i++)
+		{
+			this.api.getData()
+			.subscribe(res => {
+				if(res["Type"] == "series")
+				{
+					if(this.serielist.length < 10) {
+						console.log(res);
+						this.serielist.push(new Serie(res));
+						loading.dismiss();
+					}
+				}
+			});
+		}
   }
 
   async onInput() {
