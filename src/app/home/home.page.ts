@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonSearchbar } from '@ionic/angular';
+import { IonSearchbar, AlertController } from '@ionic/angular';
 import { LoadingController } from '@ionic/angular';
 import { RestApiService } from '../rest-api.service';
 import { Movie } from "../../models/movies";
@@ -17,29 +17,45 @@ export class HomePage {
 	@ViewChild('mySearchbar') searchbar: IonSearchbar;
 
 	movielist: Movie[] = new Array();
-	constructor(public api: RestApiService, public loadingController: LoadingController, public router: Router) {}
+	constructor(public api: RestApiService, public loadingController: LoadingController, public router: Router, public alertController: AlertController) {}
 
 	ngOnInit() {}
 
 	async ionViewWillEnter() {
+		this.movielist = new Array();
+    let loadingEnded = false;
 		const loading = await this.loadingController.create({
 			message: 'Loading',
-			duration: 15
+			duration: 5000
 		});
-		loading.present();
-		for (let i = 0; i < 30; i++)
-		{
-			this.api.getData()
-			.subscribe(res => {
-				if(res["Type"] == "movie")
-				{
-					if(this.movielist.length < 5) {
-						console.log(res);
-						this.movielist.push(new Movie(res));
-						loading.dismiss();
+		loading.present().then(() => {
+			for (let i = 0; i < 30; i++) {
+				this.api.getData()
+				.subscribe(res => {
+					if(res["Type"] == "movie")
+					{
+						if(this.movielist.length < 5) {
+							console.log(res);
+							this.movielist.push(new Movie(res));
+							loading.dismiss();
+						}
 					}
-				}
+				});
+			}
+			loadingEnded = true;
+		});
+		if(this.movielist.length < 1 && loadingEnded){
+			const alert = await this.alertController.create({
+				header: "Aucune donnée",
+				message: "Liste de films vide, merci de recharger la page ultérieurement.",
+				buttons: [
+					{
+						text: 'Ok'
+					}
+				]
 			});
+			loading.dismiss();
+			await alert.present();
 		}
 	}
 
@@ -77,7 +93,7 @@ export class HomePage {
 	async getData() {
 	  const loading = await this.loadingController.create({
 			message: 'Loading',
-			duration: 15
+			duration: 5000
 		});
 		loading.present();
 	  await loading.present();

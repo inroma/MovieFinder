@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { IonSearchbar, LoadingController } from '@ionic/angular';
+import { IonSearchbar, LoadingController, AlertController } from '@ionic/angular';
 import { RestApiService } from '../rest-api.service';
 import { Movie } from "../../models/movies";
 import { Serie } from "../../models/series";
@@ -13,30 +13,46 @@ import { Router } from '@angular/router';
 export class SeriesPage implements OnInit {
 	@ViewChild('mySearchbar') searchbar: IonSearchbar;
 	serielist: Serie[] = new Array();
-  constructor(public api: RestApiService, public router: Router, public loadingController: LoadingController) { }
+  constructor(public api: RestApiService, public router: Router, public loadingController: LoadingController, public alertController: AlertController) { }
 
 	ngOnInit() {}
 
   async ionViewWillEnter() {
+    this.serielist = new Array();
+    let loadingEnded = false;
 		const loading = await this.loadingController.create({
 			message: 'Loading',
-			duration: 15
+			duration: 5000
 		});
-		loading.present();
-    for (let i = 0; i < 80; i++)
-		{
-			this.api.getData()
-			.subscribe(res => {
-				if(res["Type"] == "series")
-				{
-					if(this.serielist.length < 10) {
-						console.log(res);
-						this.serielist.push(new Serie(res));
-						loading.dismiss();
-					}
-				}
-			});
-		}
+		loading.present().then(() => {
+      for (let i = 0; i < 80; i++) {
+        this.api.getData()
+        .subscribe(res => {
+          if(res["Type"] == "series")
+          {
+            if(this.serielist.length < 10) {
+              console.log(res);
+              this.serielist.push(new Serie(res));
+              loading.dismiss();
+            }
+          }
+        });
+      }
+      loadingEnded = true;
+    });
+    if(this.serielist.length < 1 && loadingEnded){
+      const alert = await this.alertController.create({
+        header: "Aucune donnée",
+        message: "Liste de séries vide, merci de recharger la page ultérieurement.",
+        buttons: [
+          {
+            text: 'Ok'
+          }
+        ]
+      });
+      loading.dismiss();
+      await alert.present();
+    }
   }
 
   async onInput() {
