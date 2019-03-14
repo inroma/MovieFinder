@@ -4,8 +4,6 @@ import { IonSearchbar, AlertController } from '@ionic/angular';
 import { LoadingController } from '@ionic/angular';
 import { RestApiService } from '../rest-api.service';
 import { Movie } from "../../models/movies";
-import { Serie } from "../../models/series";
-import { DetailPage } from '../detail/detail.page';
 
 @Component({
   selector: 'app-home',
@@ -17,7 +15,8 @@ export class HomePage {
 	@ViewChild('mySearchbar') searchbar: IonSearchbar;
 
 	movielist: Movie[] = new Array();
-	constructor(public api: RestApiService, public loadingController: LoadingController, public router: Router, public alertController: AlertController) {}
+	constructor(public api: RestApiService, public loadingController: LoadingController, public router: Router,
+		public alertController: AlertController) {}
 
 	ngOnInit() {}
 
@@ -35,7 +34,6 @@ export class HomePage {
 					if(res["Type"] == "movie")
 					{
 						if(this.movielist.length < 5) {
-							console.log(res);
 							this.movielist.push(new Movie(res));
 							loading.dismiss();
 						}

@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { IonSearchbar, LoadingController, AlertController } from '@ionic/angular';
 import { RestApiService } from '../rest-api.service';
-import { Movie } from "../../models/movies";
 import { Serie } from "../../models/series";
 import { Router } from '@angular/router';
 
@@ -31,7 +30,6 @@ export class SeriesPage implements OnInit {
           if(res["Type"] == "series")
           {
             if(this.serielist.length < 10) {
-              console.log(res);
               this.serielist.push(new Serie(res));
               loading.dismiss();
             }

@@ -1,12 +1,17 @@
-import { Storage } from '@ionic/storage';
+import { File } from '@ionic-native/file/ngx';
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { Movie } from 'src/models/movies';
 import { Serie } from 'src/models/series';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RestApiService } from '../rest-api.service';
-import { NavController } from '@ionic/angular';
+import { Platform } from '@ionic/angular';
 import { Saison } from 'src/models/seasons';
 import { Episode } from 'src/models/episode';
+import { FileTransfer } from '@ionic-native/file-transfer/ngx';
+
+
+declare var cordova;
 
 @Component({
   selector: 'app-detail',
@@ -26,8 +31,10 @@ export class DetailPage implements OnInit {
   showLevel1 = null;
   isFavorite: boolean = false;
   target: any;
+  no_image: string = '../assets/No_image_available.svg';
 
-  constructor(private activatedRoute: ActivatedRoute, public api: RestApiService, public router: Router){}
+  constructor(public platform: Platform,private activatedRoute: ActivatedRoute, public api: RestApiService, 
+    public router: Router, public fileTransfer: FileTransfer, private http: HttpClient){}
 
   ngOnInit()
   {
@@ -141,16 +148,16 @@ export class DetailPage implements OnInit {
   getImgUrl(type: string) {
     switch(type){
       case "movie":
-        this.movie.PosterPoster = this.movie.posterURL?this.movie.posterURL:'../assets/No_image_available.svg';
+        this.movie.PosterPoster = this.movie.posterURL?this.movie.posterURL:this.no_image;
         break;
       case "series":
-        this.serie.PosterPoster = this.serie.posterURL?this.serie.posterURL:'../assets/No_image_available.svg';
+        this.serie.PosterPoster = this.serie.posterURL?this.serie.posterURL:this.no_image;
         break;
       case "episode":
-        this.episode.PosterPoster = this.episode.posterURL?this.episode.posterURL:'../assets/No_image_available.svg';
+        this.episode.PosterPoster = this.episode.posterURL?this.episode.posterURL:this.no_image;
         break;
       case "season":
-        this.saison.PosterPoster = '../assets/No_image_available.svg';
+        this.saison.PosterPoster = this.no_image;
         break;
     }
   }
@@ -175,6 +182,27 @@ export class DetailPage implements OnInit {
       this.localstorage.removeItem(item["IMDbIndex"]);
     }
     this.isFavorite = this.getFavorite(item["IMDbIndex"]);
+  }
+
+  downloadPoster(item: JSON) {
+    this.platform.ready().then(() => {
+      //const fileTransfer = new FileTransfer().create();
+  
+      const posterLocation = item["PosterPoster"];
+      const targetPath = cordova.file.externalRootDirectory;
+  
+      //fileTransfer.download(posterLocation, targetPath, true);
+
+
+      this.http.get(posterLocation, {responseType: 'blob'})
+      .subscribe((imageBlob: Blob) => {
+        let file = new File();
+        return file.writeFile(targetPath, item["Title"] +"_Poster.jpg", imageBlob, {replace: true});
+      });
+    });
+
+    //this.fileTransfer.create().download(item["PosterPoster"], item["Title"]+"_Poster.jpg").then(() => 
+    //  console.log("success"));
   }
 
   toggleLevel1(idx) {

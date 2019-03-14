@@ -1,11 +1,7 @@
 import { File } from '@ionic-native/file/ngx';
-import { Component, OnInit } from '@angular/core';
-import { AlertController } from '@ionic/angular';
+import { Component, OnInit, PlatformRef } from '@angular/core';
+import { AlertController, Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { Episode } from 'src/models/episode';
-import { Movie } from 'src/models/movies';
-import { Saison } from 'src/models/seasons';
-import { Serie } from 'src/models/series';
 import { RestApiService } from '../rest-api.service';
 import { FileChooser } from '@ionic-native/file-chooser/ngx';
 
@@ -20,7 +16,8 @@ export class FavorisPage implements OnInit {
   type: string;
   poster: string;
 
-  constructor(public api: RestApiService, public router: Router, public alertController: AlertController, private fileChooser: FileChooser) { }
+  constructor(public api: RestApiService, public router: Router, public alertController: AlertController, 
+    private fileChooser: FileChooser, public platform: Platform) { }
 
   ngOnInit() {}
 
@@ -31,28 +28,24 @@ export class FavorisPage implements OnInit {
       console.log(element);
       switch (element["Type"]) {
         case "movie":
-            console.log('movie')
-            const movie = element;
-            movie.PosterPoster = this.api.getPoster(movie.IMDbIndex);
-            this.favorites.push(movie);
-            break;
+          const movie = element;
+          movie.PosterPoster = this.api.getPoster(movie.IMDbIndex);
+          this.favorites.push(movie);
+          break;
         case "series":
-            console.log('series')
-            const serie = element;
-            serie.PosterPoster = this.api.getPoster(serie.IMDbIndex);
-            this.favorites.push(serie);
-            break;
+          const serie = element;
+          serie.PosterPoster = this.api.getPoster(serie.IMDbIndex);
+          this.favorites.push(serie);
+          break;
         case "episode":
-            console.log('episode')
-            const episode = element;
-            episode.PosterPoster = this.api.getPoster(episode.IMDbIndex);
-            this.favorites.push(episode);
-            break;
+          const episode = element;
+          episode.PosterPoster = this.api.getPoster(episode.IMDbIndex);
+          this.favorites.push(episode);
+          break;
         default:
-            console.log('default')
-            const saison = element;
-            this.favorites.push(saison);
-            break;
+          const saison = element;
+          this.favorites.push(saison);
+          break;
         }
       }
   }
@@ -64,8 +57,6 @@ export class FavorisPage implements OnInit {
         element.PosterPoster = no_image;
         break;
       default:
-        console.log(element.PosterPoster);
-        console.log(element.posterURL);
         element.PosterPoster = element.posterURL ? element.posterURL : no_image;
         break;
     }
@@ -145,36 +136,46 @@ export class FavorisPage implements OnInit {
   }
 
   writeJSONFile() {
-    let data = 'data:text/json;charser=utf8,';
-    for(let i = 0; this.localstorage.length; i++) {
-      const element = this.localstorage.getItem(this.localstorage.key(i));
-      data += element;
-    }
-    const jsonFile = new File();
-    jsonFile.createFile(jsonFile.externalRootDirectory, 'favorites.json', true);
-    jsonFile.writeFile(jsonFile.externalRootDirectory, 'favorites.json', data);
-    //const a = document.createElement('a');
-    //a.href = data;
-    //a.download = 'favorites.json';
-    //document.getElementById('download').appendChild(a);
-    //a.click();
+    this.platform.ready().then((source) => { 
+      let data = 'data:text/json;charser=utf8,';
+      for(let i; i < this.localstorage.length; i++) {
+        data += this.localstorage.getItem(this.localstorage.key(i));
+      }
+      if(source == "cordova" || source == "windows" || source == "core") {
+        const a = document.createElement('a');
+        a.href = data;
+        a.download = 'favorites.json';
+        document.getElementById('download').appendChild(a);
+        a.click();
+      }
+      else {
+        const jsonFile = new File();
+        jsonFile.writeFile(jsonFile.externalRootDirectory, 'favorites.json', data, {replace: true});
+      }
+    });
   }
 
   writeCSVFile() {
     let csv = "";
     let array = new Array();
-    for (let i = 0; i < this.localstorage.length; i++) {
-      const element = this.localstorage.getItem(this.localstorage.key(i));
-      array.push(JSON.parse(element));
-    };
+    for(let i; i < this.localstorage.length; i++) {
+      array.push(this.localstorage.getItem(this.localstorage.key(i)));
+    }
     csv = ConvertToCSV(array);
-    console.log(csv);
     const data = 'data:text/csv;charser=utf8,' + csv;
-    const a = document.createElement('a');
-    a.href = data;
-    a.download = 'favorites.csv';
-    document.getElementById('download').appendChild(a);
-    a.click();
+    this.platform.ready().then((source) => {      
+      if(source == "cordova" || source == "windows" || source == "core") {
+        const a = document.createElement('a');
+        a.href = data;
+        a.download = 'favorites.csv';
+        document.getElementById('download').appendChild(a);
+        a.click();
+      }
+      else {
+        const csvFile = new File();
+        csvFile.writeFile(csvFile.externalRootDirectory, 'favorites.csv', data, {replace: true});
+      }
+    });
 
     function ConvertToCSV(objArray) {
       var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
@@ -198,7 +199,15 @@ export class FavorisPage implements OnInit {
 
   importFavorites(file: File) {
     this.fileChooser.open()
-      .then(uri => file.readAsText(uri, 'favorites.json').then(res => { this.localstorage = JSON.parse(res); }))
+      .then((uri) => {
+        console.log(uri);
+        if(uri.endsWith(".json")) {
+          file.readAsDataURL(uri, 'favorites.json').then((res) => { this.localstorage = JSON.parse(res); });
+        }
+        else if(uri.endsWith(".csv")) {
+          file.readAsDataURL(uri, 'favorites.csv').then((res) => { this.localstorage = JSON.parse(res) });
+        }
+      })
       .catch(e => console.log(e));
   }
 

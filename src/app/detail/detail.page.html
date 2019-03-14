@@ -8,6 +8,7 @@
         <div *ngSwitchCase="'movie'">
             <ion-card>
                 <ion-background>
+                    <ion-icon name="download" *ngIf='movie.PosterPoster != no_image' (click)='downloadPoster(movie)'></ion-icon>
                     <img src={{movie.PosterPoster}} (error)=getImgUrl(movie.Type)>
                 </ion-background>
                 <ion-card-header>
@@ -31,6 +32,7 @@
         <div *ngSwitchCase="'series'">
             <ion-card>
                 <ion-background>
+                    <ion-icon name="download" *ngIf='serie.PosterPoster != "N/A"' (click)='downloadPoster(serie)'></ion-icon>
                     <img src={{serie.PosterPoster}} (error)=getImgUrl(serie.Type)>
                 </ion-background>
                 <ion-card-header>
@@ -69,6 +71,7 @@
         <div *ngSwitchCase="'episode'">
                 <ion-card>
                     <ion-background>
+                        <ion-icon name="download" *ngIf='episode.PosterPoster != "N/A"' (click)='downloadPoster(episode)'></ion-icon>
                         <img src={{episode.PosterPoster}} (error)=getImgUrl(episode.Type)>
                     </ion-background>
                     <ion-card-header>
