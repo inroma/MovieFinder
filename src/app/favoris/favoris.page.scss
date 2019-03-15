@@ -18,3 +18,18 @@
     display: inline-block;
     vertical-align: -webkit-baseline-middle;
 }
+
+/* Top left text */
+.sc-ion-card-md-h ion-background ion-icon {
+    position: absolute;
+    top: 3px;
+    right: 8px;
+    font-size: 200%;
+  }
+  
+  .sc-ion-card-md-s :hover {
+    .ion-icon {
+      color: white;
+      transition: all .2s ease-in;
+    }
+  }

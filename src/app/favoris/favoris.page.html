@@ -13,6 +13,7 @@
   <ion-list>
     <ion-card *ngFor="let fav of favorites">
       <ion-background>
+        <ion-icon class="ion-icon" name="download" *ngIf='fav.PosterPoster != no_image' (click)='downloadPoster(fav)'></ion-icon>
         <img src="{{fav.PosterPoster}}" (error)=getImgUrl(fav) (click)="onItemClick(fav)">
       </ion-background>
       <ion-card-header>

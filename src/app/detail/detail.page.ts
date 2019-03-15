@@ -1,5 +1,6 @@
-import { File } from '@ionic-native/file/ngx';
 import { HttpClient } from '@angular/common/http';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+import { File } from '@ionic-native/file/ngx';
 import { Component, OnInit } from '@angular/core';
 import { Movie } from 'src/models/movies';
 import { Serie } from 'src/models/series';
@@ -8,10 +9,7 @@ import { RestApiService } from '../rest-api.service';
 import { Platform } from '@ionic/angular';
 import { Saison } from 'src/models/seasons';
 import { Episode } from 'src/models/episode';
-import { FileTransfer } from '@ionic-native/file-transfer/ngx';
-
-
-declare var cordova;
+import { FileTransfer, FileTransferObject } from '@ionic-native/file-transfer/ngx';
 
 @Component({
   selector: 'app-detail',
@@ -32,9 +30,10 @@ export class DetailPage implements OnInit {
   isFavorite: boolean = false;
   target: any;
   no_image: string = '../assets/No_image_available.svg';
+  permissions: AndroidPermissions = new AndroidPermissions();
 
   constructor(public platform: Platform,private activatedRoute: ActivatedRoute, public api: RestApiService, 
-    public router: Router, public fileTransfer: FileTransfer, private http: HttpClient){}
+    public router: Router, public fileTransfer: FileTransfer){}
 
   ngOnInit()
   {
@@ -185,24 +184,26 @@ export class DetailPage implements OnInit {
   }
 
   downloadPoster(item: JSON) {
-    this.platform.ready().then(() => {
-      //const fileTransfer = new FileTransfer().create();
-  
-      const posterLocation = item["PosterPoster"];
-      const targetPath = cordova.file.externalRootDirectory;
-  
-      //fileTransfer.download(posterLocation, targetPath, true);
-
-
-      this.http.get(posterLocation, {responseType: 'blob'})
-      .subscribe((imageBlob: Blob) => {
-        let file = new File();
-        return file.writeFile(targetPath, item["Title"] +"_Poster.jpg", imageBlob, {replace: true});
+    this.platform.ready().then((source) => {
+      if(source == "dom" || source == "windows" || source == "core") {
+        const a = document.createElement('a');
+        a.href = item["PosterPoster"];
+        a.download = 'Poster'+item["Title"]+'.jpg';
+        document.getElementById('download').appendChild(a);
+        a.click();
+      }
+      else if (source == "android" || source == "cordova"){
+        const posterLocation = item["PosterPoster"];
+        const posterImage = new File();
+      
+        this.permissions.checkPermission(this.permissions.PERMISSION.WRITE_EXTERNAL_STORAGE).then((response) => {
+            if (response.hasPermission === true) {
+              const fileTransfer: FileTransferObject = this.fileTransfer.create();
+              fileTransfer.download(posterLocation, posterImage.externalRootDirectory + '/Download/Poster_'+item["Title"]+'.jpg');
+              }
+        });
+        }
       });
-    });
-
-    //this.fileTransfer.create().download(item["PosterPoster"], item["Title"]+"_Poster.jpg").then(() => 
-    //  console.log("success"));
   }
 
   toggleLevel1(idx) {

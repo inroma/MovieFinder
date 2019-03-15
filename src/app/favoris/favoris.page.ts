@@ -1,23 +1,34 @@
+import { HTTP } from '@ionic-native/http/ngx';
 import { File } from '@ionic-native/file/ngx';
-import { Component, OnInit, PlatformRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AlertController, Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { RestApiService } from '../rest-api.service';
 import { FileChooser } from '@ionic-native/file-chooser/ngx';
+import { FileTransfer, FileTransferObject } from '@ionic-native/file-transfer/ngx';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+import 'csvtojson';
+import 'json2csv';
+
+declare var cordova:any;
 
 @Component({
   selector: 'app-favoris',
   templateUrl: './favoris.page.html',
   styleUrls: ['./favoris.page.scss'],
 })
+
+
 export class FavorisPage implements OnInit {
   localstorage = window.localStorage;
   favorites = [];
   type: string;
   poster: string;
+  no_image: string = '../assets/No_image_available.svg';
+  private permissions: AndroidPermissions = new AndroidPermissions();
 
   constructor(public api: RestApiService, public router: Router, public alertController: AlertController, 
-    private fileChooser: FileChooser, public platform: Platform) { }
+    private fileChooser: FileChooser, public platform: Platform, public transfer: FileTransfer, public http: HTTP) { }
 
   ngOnInit() {}
 
@@ -138,77 +149,94 @@ export class FavorisPage implements OnInit {
   writeJSONFile() {
     this.platform.ready().then((source) => { 
       let data = 'data:text/json;charser=utf8,';
-      for(let i; i < this.localstorage.length; i++) {
-        data += this.localstorage.getItem(this.localstorage.key(i));
+      for(let i = 0; i < this.localstorage.length; i++) {
+        data += this.localstorage.getItem(this.localstorage.key(i)) + "\n\r";
       }
-      if(source == "cordova" || source == "windows" || source == "core") {
+      if(source == "dom" || source == "windows" || source == "core") {
         const a = document.createElement('a');
         a.href = data;
         a.download = 'favorites.json';
         document.getElementById('download').appendChild(a);
         a.click();
       }
-      else {
+      else if (source == "android" || source == "cordova"){
         const jsonFile = new File();
-        jsonFile.writeFile(jsonFile.externalRootDirectory, 'favorites.json', data, {replace: true});
+        this.permissions.checkPermission(this.permissions.PERMISSION.WRITE_EXTERNAL_STORAGE).then((response) => {
+              if (response.hasPermission === true) {
+                const fileTransfer: FileTransferObject = this.transfer.create();
+                fileTransfer.download(data, jsonFile.externalRootDirectory + '/Download/favorites.json');
+        }
+      });
       }
     });
   }
 
   writeCSVFile() {
-    let csv = "";
     let array = new Array();
-    for(let i; i < this.localstorage.length; i++) {
-      array.push(this.localstorage.getItem(this.localstorage.key(i)));
+    for(let i = 0; i < this.localstorage.length; i++) {
+      array.push(JSON.parse(this.localstorage.getItem(this.localstorage.key(i))));
     }
-    csv = ConvertToCSV(array);
+
+    const csv = require("json2csv").parse(array);
     const data = 'data:text/csv;charser=utf8,' + csv;
-    this.platform.ready().then((source) => {      
-      if(source == "cordova" || source == "windows" || source == "core") {
+
+    this.platform.ready().then((source) => {
+      if(source == "dom" || source == "windows" || source == "core") {
         const a = document.createElement('a');
         a.href = data;
         a.download = 'favorites.csv';
         document.getElementById('download').appendChild(a);
         a.click();
       }
-      else {
+      else if (source == "android" || source == "cordova"){
         const csvFile = new File();
-        csvFile.writeFile(csvFile.externalRootDirectory, 'favorites.csv', data, {replace: true});
+        this.permissions.checkPermission(this.permissions.PERMISSION.WRITE_EXTERNAL_STORAGE).then((response) => {
+              if (response.hasPermission === true) {
+                const fileTransfer: FileTransferObject = this.transfer.create();
+                fileTransfer.download(data, csvFile.externalRootDirectory + '/Download/favorites.csv');
+                }
+          });
+        }
+      });
+    }
+
+  async importFavorites(file: File) {
+    let csvtojsonV2=require("csvtojson");
+    this.platform.ready().then((source) => {      
+      if (source == "android" || source == "cordova"){
+        this.fileChooser.open()
+        .then((uri) => {
+          if(uri.endsWith(".json")) {
+            file.readAsText(uri, 'favorites.json').then((res) => { this.localstorage = JSON.parse(res); });
+          }
+          else if(uri.endsWith(".csv")) {
+            file.readAsText(uri, 'favorites.csv').then((res) => { csvtojsonV2.fromFile(res)
+              .then((jsonObj) => { this.localstorage = jsonObj; });
+            });
+          }
+        })
+        .catch(e => console.log(e));
       }
     });
-
-    function ConvertToCSV(objArray) {
-      var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
-      var str = '';
-
-      for (var i = 0; i < array.length; i++) {
-        var line = '';
-        for (var index in array[i]) {
-          if (line != '') {
-            line += array[i][index];
-            line += ';';
-          }
-        }
-
-        str += line + '\r\n';
-      }
-
-      return str;
-    }
   }
 
-  importFavorites(file: File) {
-    this.fileChooser.open()
-      .then((uri) => {
-        console.log(uri);
-        if(uri.endsWith(".json")) {
-          file.readAsDataURL(uri, 'favorites.json').then((res) => { this.localstorage = JSON.parse(res); });
+  downloadPoster(item: JSON) {
+    this.platform.ready().then((source) => {
+      if(source == "dom" || source == "windows" || source == "core") {
+        window.open(item["PosterPoster"]);
+      }
+      else if (source == "android" || source == "cordova"){
+        const posterLocation = item["PosterPoster"];
+        const posterImage = new File();
+      
+        this.permissions.checkPermission(this.permissions.PERMISSION.WRITE_EXTERNAL_STORAGE).then((response) => {
+            if (response.hasPermission === true) {
+              const fileTransfer: FileTransferObject = this.transfer.create();
+              fileTransfer.download(posterLocation, posterImage.externalRootDirectory + '/Download/Poster_'+item["Title"]+'.jpg');
+              }
+        });
         }
-        else if(uri.endsWith(".csv")) {
-          file.readAsDataURL(uri, 'favorites.csv').then((res) => { this.localstorage = JSON.parse(res) });
-        }
-      })
-      .catch(e => console.log(e));
+      });
   }
 
   async deleteFavorites() {
@@ -224,6 +252,7 @@ export class FavorisPage implements OnInit {
           text: 'Ok',
           handler: () => {
             localStorage.clear();
+            this.ionViewWillEnter();
           }
         }
       ]

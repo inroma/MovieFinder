@@ -1,8 +1,6 @@
-import { ResponseContentType } from '@angular/http';
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpErrorResponse, HttpResponse } from '@angular/common/http';
-import { forkJoin } from 'rxjs';
 
 const API_URL = "http://www.omdbapi.com/?apikey=75522b56";
 const POSTER_API_URL = "http://img.omdbapi.com/?apikey=75522b56";
