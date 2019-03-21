@@ -1,4 +1,3 @@
-import { HTTP } from '@ionic-native/http/ngx';
 import { File } from '@ionic-native/file/ngx';
 import { Component, OnInit } from '@angular/core';
 import { AlertController, Platform } from '@ionic/angular';
@@ -7,6 +6,7 @@ import { RestApiService } from '../rest-api.service';
 import { FileChooser } from '@ionic-native/file-chooser/ngx';
 import { FileTransfer, FileTransferObject } from '@ionic-native/file-transfer/ngx';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+import { FilePath } from '@ionic-native/file-path/ngx';
 import 'csvtojson';
 import 'json2csv';
 
@@ -28,7 +28,7 @@ export class FavorisPage implements OnInit {
   private permissions: AndroidPermissions = new AndroidPermissions();
 
   constructor(public api: RestApiService, public router: Router, public alertController: AlertController, 
-    private fileChooser: FileChooser, public platform: Platform, public transfer: FileTransfer, public http: HTTP) { }
+    private fileChooser: FileChooser, public platform: Platform, public transfer: FileTransfer, public filepath: FilePath) { }
 
   ngOnInit() {}
 
@@ -150,7 +150,9 @@ export class FavorisPage implements OnInit {
     this.platform.ready().then((source) => { 
       let data = 'data:text/json;charser=utf8,';
       for(let i = 0; i < this.localstorage.length; i++) {
-        data += this.localstorage.getItem(this.localstorage.key(i)) + "\n\r";
+        let value = this.localstorage.getItem(this.localstorage.key(i));
+        if(value != "")
+          data += this.localstorage.getItem(this.localstorage.key(i)) + "\n\r";
       }
       if(source == "dom" || source == "windows" || source == "core") {
         const a = document.createElement('a');
@@ -200,20 +202,31 @@ export class FavorisPage implements OnInit {
       });
     }
 
-  async importFavorites(file: File) {
+  async importFavorites() {
     let csvtojsonV2=require("csvtojson");
+    const file = new File();
+
     this.platform.ready().then((source) => {      
       if (source == "android" || source == "cordova"){
         this.fileChooser.open()
         .then((uri) => {
           if(uri.endsWith(".json")) {
-            file.readAsText(uri, 'favorites.json').then((res) => { this.localstorage = JSON.parse(res); });
+            this.filepath.resolveNativePath(uri).then((path)=>{
+              let temp = path.split("/");
+              let filename = temp.pop();
+              path = temp.join("/");
+              file.readAsText(path, filename).then((data)=>{
+                this.localstorage.clear();
+                this.localstorage.setItem(data["IMDbIndex"], data);
+              }).catch(err=>console.log(err));
+            });
           }
           else if(uri.endsWith(".csv")) {
             file.readAsText(uri, 'favorites.csv').then((res) => { csvtojsonV2.fromFile(res)
               .then((jsonObj) => { this.localstorage = jsonObj; });
             });
           }
+          this.ionViewWillEnter();
         })
         .catch(e => console.log(e));
       }

@@ -1,4 +1,3 @@
-import { HttpClient } from '@angular/common/http';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { File } from '@ionic-native/file/ngx';
 import { Component, OnInit } from '@angular/core';
