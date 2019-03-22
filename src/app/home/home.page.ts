@@ -13,7 +13,7 @@ import { Movie } from "../../models/movies";
 
 export class HomePage {
 	@ViewChild('mySearchbar') searchbar: IonSearchbar;
-
+	hidden = false;
 	movielist: Movie[] = new Array();
 	constructor(public api: RestApiService, public loadingController: LoadingController, public router: Router,
 		public alertController: AlertController) {}
@@ -34,7 +34,9 @@ export class HomePage {
 					if(res["Type"] == "movie")
 					{
 						if(this.movielist.length < 5) {
-							this.movielist.push(new Movie(res));
+							let temp = new Movie(res)
+							this.getImgUrl(temp);
+							this.movielist.push(temp);
 							loading.dismiss();
 						}
 					}

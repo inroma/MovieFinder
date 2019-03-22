@@ -1,9 +1,28 @@
-.title-md {
+.header ion-toolbar {
     text-align: center;
+}
+
+.header ion-toolbar ion-title {
+    text-align: center;
+    display: inline-flex;
+    margin-right: -30px;
+}
+
+.header ion-toolbar ion-icon {
+    display: inline-flex;
+    font-size: 25px;
+    margin-right: 5px;
+    float: right;
 }
 
 h1 {
     text-align: center;
+}
+
+.sc-ion-searchbar-md-h {
+    max-width: 800px;
+    margin-right: auto;
+    margin-left: auto;
 }
 
 .ion-page {

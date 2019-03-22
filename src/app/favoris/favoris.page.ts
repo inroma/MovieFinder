@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { File } from '@ionic-native/file/ngx';
 import { Component, OnInit } from '@angular/core';
 import { AlertController, Platform } from '@ionic/angular';
@@ -18,7 +19,6 @@ declare var cordova:any;
   styleUrls: ['./favoris.page.scss'],
 })
 
-
 export class FavorisPage implements OnInit {
   localstorage = window.localStorage;
   favorites = [];
@@ -28,7 +28,8 @@ export class FavorisPage implements OnInit {
   private permissions: AndroidPermissions = new AndroidPermissions();
 
   constructor(public api: RestApiService, public router: Router, public alertController: AlertController, 
-    private fileChooser: FileChooser, public platform: Platform, public transfer: FileTransfer, public filepath: FilePath) { }
+    private fileChooser: FileChooser, public platform: Platform, public transfer: FileTransfer, public filepath: FilePath,
+    private http: HttpClient) { }
 
   ngOnInit() {}
 
@@ -149,11 +150,13 @@ export class FavorisPage implements OnInit {
   writeJSONFile() {
     this.platform.ready().then((source) => { 
       let data = 'data:text/json;charser=utf8,';
+      let temp = [];
       for(let i = 0; i < this.localstorage.length; i++) {
         let value = this.localstorage.getItem(this.localstorage.key(i));
         if(value != "")
-          data += this.localstorage.getItem(this.localstorage.key(i)) + "\n\r";
+          temp.push(value);
       }
+      data += "[" + temp + "]";
       if(source == "dom" || source == "windows" || source == "core") {
         const a = document.createElement('a');
         a.href = data;
@@ -210,27 +213,63 @@ export class FavorisPage implements OnInit {
       if (source == "android" || source == "cordova"){
         this.fileChooser.open()
         .then((uri) => {
-          if(uri.endsWith(".json")) {
             this.filepath.resolveNativePath(uri).then((path)=>{
               let temp = path.split("/");
               let filename = temp.pop();
               path = temp.join("/");
-              file.readAsText(path, filename).then((data)=>{
-                this.localstorage.clear();
-                this.localstorage.setItem(data["IMDbIndex"], data);
-              }).catch(err=>console.log(err));
+
+              this.localstorage.clear();
+
+              if(filename.endsWith(".json")) {
+                file.readAsText(path, filename).then((content: string) => {
+                  let data = JSON.parse(content);
+                  data.forEach(element => {
+                    this.localstorage.setItem(element["IMDbIndex"], JSON.stringify(element));
+                  });
+                }).catch(err=>console.log(err));
+              }
+              else if(filename.endsWith(".csv")) {
+                file.readAsText(path, filename).then((res) => { 
+                  csvtojsonV2().fromString(res).then((jsonObj) => {
+                    jsonObj.forEach(element => {
+                      this.localstorage.setItem(element["IMDbIndex"], JSON.stringify(element));
+                    });
+                });
+              });
+              }
+              this.ionViewWillEnter();
             });
+          });
+      }
+      else {
+        const input = document.getElementById('myInput');
+        input.click();
+        console.log(input.innerText)
+        this.filepath.resolveNativePath(input.innerText).then((path)=>{
+          let temp = path.split("/");
+          let filename = temp.pop();
+          path = temp.join("/");
+          if(filename.endsWith(".json")) {
+            file.readAsText(path, filename).then((content: string) => {
+              let data = JSON.parse(content);
+              data.forEach(element => {
+                this.localstorage.setItem(element["IMDbIndex"], JSON.stringify(element));
+              });
+            }).catch(err=>console.log(err));
           }
-          else if(uri.endsWith(".csv")) {
-            file.readAsText(uri, 'favorites.csv').then((res) => { csvtojsonV2.fromFile(res)
-              .then((jsonObj) => { this.localstorage = jsonObj; });
+          else if(filename.endsWith(".csv")) {
+            file.readAsText(path, filename).then((res) => { 
+              csvtojsonV2().fromString(res).then((jsonObj) => {
+                jsonObj.forEach(element => {
+                  this.localstorage.setItem(element["IMDbIndex"], JSON.stringify(element));
+                });
             });
+          });
           }
           this.ionViewWillEnter();
-        })
-        .catch(e => console.log(e));
+        });
       }
-    });
+    }).catch(e => console.log(e));
   }
 
   downloadPoster(item: JSON) {

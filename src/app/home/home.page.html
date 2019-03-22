@@ -1,13 +1,12 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>Ynov Movie Finder</ion-title>
+		<ion-icon name="search" (click)="hidden = !hidden"></ion-icon>
   </ion-toolbar>
 </ion-header>
-<ion-toolbar>
-    <ion-searchbar #mySearchbar (ionInput)="onInput()"></ion-searchbar>
-</ion-toolbar>
 
 <ion-content padding>
+<ion-searchbar #mySearchbar (ionInput)="onInput()" *ngIf=!hidden></ion-searchbar>
 	<h1>Films</h1>
 	<ion-list>
 		<ion-card *ngFor="let movie of movielist" (click)="cardClick(movie.IMDbIndex)">
