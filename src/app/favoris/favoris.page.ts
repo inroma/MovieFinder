@@ -1,4 +1,3 @@
-import { HttpClient } from '@angular/common/http';
 import { File } from '@ionic-native/file/ngx';
 import { Component, OnInit } from '@angular/core';
 import { AlertController, Platform } from '@ionic/angular';
@@ -8,6 +7,7 @@ import { FileChooser } from '@ionic-native/file-chooser/ngx';
 import { FileTransfer, FileTransferObject } from '@ionic-native/file-transfer/ngx';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { FilePath } from '@ionic-native/file-path/ngx';
+import { SocialSharing } from '@ionic-native/social-sharing/ngx';
 import 'csvtojson';
 import 'json2csv';
 
@@ -25,11 +25,12 @@ export class FavorisPage implements OnInit {
   type: string;
   poster: string;
   no_image: string = '../assets/No_image_available.svg';
+  choosenFile: string;
   private permissions: AndroidPermissions = new AndroidPermissions();
 
   constructor(public api: RestApiService, public router: Router, public alertController: AlertController, 
     private fileChooser: FileChooser, public platform: Platform, public transfer: FileTransfer, public filepath: FilePath,
-    private http: HttpClient) { }
+    private socialSharing: SocialSharing) { }
 
   ngOnInit() {}
 
@@ -209,7 +210,7 @@ export class FavorisPage implements OnInit {
     let csvtojsonV2=require("csvtojson");
     const file = new File();
 
-    this.platform.ready().then((source) => {      
+    await this.platform.ready().then((source) => {      
       if (source == "android" || source == "cordova"){
         this.fileChooser.open()
         .then((uri) => {
@@ -244,30 +245,32 @@ export class FavorisPage implements OnInit {
       else {
         const input = document.getElementById('myInput');
         input.click();
-        console.log(input.innerText)
-        this.filepath.resolveNativePath(input.innerText).then((path)=>{
-          let temp = path.split("/");
-          let filename = temp.pop();
-          path = temp.join("/");
-          if(filename.endsWith(".json")) {
-            file.readAsText(path, filename).then((content: string) => {
-              let data = JSON.parse(content);
-              data.forEach(element => {
-                this.localstorage.setItem(element["IMDbIndex"], JSON.stringify(element));
-              });
-            }).catch(err=>console.log(err));
-          }
-          else if(filename.endsWith(".csv")) {
-            file.readAsText(path, filename).then((res) => { 
-              csvtojsonV2().fromString(res).then((jsonObj) => {
-                jsonObj.forEach(element => {
+        input.addEventListener("input", (() => {
+          console.log(this.choosenFile);
+          this.filepath.resolveNativePath(this.choosenFile).then((path)=>{
+            let temp = path.split("/");
+            let filename = temp.pop();
+            path = temp.join("/");
+            if(filename.endsWith(".json")) {
+              file.readAsText(path, filename).then((content: string) => {
+                let data = JSON.parse(content);
+                data.forEach(element => {
                   this.localstorage.setItem(element["IMDbIndex"], JSON.stringify(element));
                 });
+              }).catch(err=>console.log(err));
+            }
+            else if(filename.endsWith(".csv")) {
+              file.readAsText(path, filename).then((res) => { 
+                csvtojsonV2().fromString(res).then((jsonObj) => {
+                  jsonObj.forEach(element => {
+                    this.localstorage.setItem(element["IMDbIndex"], JSON.stringify(element));
+                  });
+              });
             });
+            }
+            this.ionViewWillEnter();
           });
-          }
-          this.ionViewWillEnter();
-        });
+        }));
       }
     }).catch(e => console.log(e));
   }
@@ -312,4 +315,28 @@ export class FavorisPage implements OnInit {
     await alert.present();
   }
 
+  shareList() {
+    let data = 'data:text/json;charset=utf8,';
+    let temp = [];
+    let file = new File();
+    for(let i = 0; i < this.localstorage.length; i++) {
+      let value = this.localstorage.getItem(this.localstorage.key(i));
+      if(value != "")
+        temp.push(value);
+    }
+    data += "[" + temp + "]";
+    this.permissions.requestPermissions([this.permissions.PERMISSION.WRITE_EXTERNAL_STORAGE, this.permissions.PERMISSION.READ_EXTERNAL_STORAGE]).then((response) => {
+      if (response.hasPermission === true) {
+        const fileTransfer: FileTransferObject = this.transfer.create();
+        fileTransfer.download(data, file.externalCacheDirectory  + 'favorites.json').then((favoriteFile) => {
+          console.log(favoriteFile.nativeURL)
+          this.socialSharing.shareWithOptions({
+            message:'Check my favorites movies and series !',
+            subject:"Movie Finder",
+            files: favoriteFile.nativeURL,
+          }).finally(() => { file.removeFile(file.externalCacheDirectory , 'favorites.json') });
+        });
+        }
+      });
+  }
 }

@@ -12,6 +12,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from '@angular/common/http';
 import { SortPipe } from './sort.pipe';
 import { File } from '@ionic-native/file/ngx';
+import { SocialSharing } from '@ionic-native/social-sharing/ngx';
 
 @NgModule({
   declarations: [AppComponent, SortPipe],
@@ -27,6 +28,7 @@ import { File } from '@ionic-native/file/ngx';
     SplashScreen,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     File,
+    SocialSharing,
   ],
   bootstrap: [AppComponent]
 })

@@ -8,6 +8,7 @@
 <ion-content padding>
 <ion-searchbar #mySearchbar (ionInput)="onInput()" *ngIf=!hidden></ion-searchbar>
 	<h1>Films</h1>
+	<div *ngIf="this.movielist.length == 0">Aucun film trouvé</div>
 	<ion-list>
 		<ion-card *ngFor="let movie of movielist" (click)="cardClick(movie.IMDbIndex)">
 			<ion-card-header>
